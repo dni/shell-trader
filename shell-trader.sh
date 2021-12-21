@@ -1,5 +1,5 @@
 #/usr/bin/env sh
-data=$(tail -n 1 data.txt)
+data=$(tail -n 1 signal-log.txt)
 price=$(cut -d "," -f 1)
 order_type=$(cut -d "," -f 2)
 side=$(cut -d "," -f 3)
