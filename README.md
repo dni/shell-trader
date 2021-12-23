@@ -1,4 +1,5 @@
-# shell-trader CLI for lnmarkets and maybe more exchanges
+# shell-trader CLI
+#### for lnmarkets and maybe more exchanges
 shellscript for interacting with lnmarkets.com
 
 ## todo
