@@ -42,9 +42,41 @@ setting up the enviroment variable
 ```sh
   lnm buy_market $qty $leverage $stoploss $takeprofit
 ```
+
+#### positions
+```sh
+  lnm positions
+  lnm positions open
+```
+
+#### add_margin / take_profit
+```sh
+  lnm add_margin $pid $amount
+  lnm take_profit $pid $amount
+```
+
+#### close/ cancel
+```sh
+  lnm close $pid
+  lnm cancel $pid
+```
+
+#### close_all / cancel_all
+```sh
+  lnm close_all
+  lnm cancel_all
+```
+
 #### ticker / index_history
 ```sh
   lnm ticker
   lnm index_history
 ```
+
+#### user / balance
+```sh
+  lnm user
+  lnm balance
+```
+
 

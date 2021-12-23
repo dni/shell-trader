@@ -16,9 +16,7 @@ send_request() {
   if [ "$method" == "GET" ] || [ "$method" == "DELETE" ]; then
     # path should not contain any params for signing
     path=$(echo $2 | cut -d "?" -f 1)
-    # TODO handle urls without arguments
-    # why is this still echoing to stdout?
-    echo $2 | grep "?" && params_or_json=$(echo $2 | cut -d "?" -f 2)
+    echo $2 | grep -q "?" && params_or_json=$(echo $2 | cut -d "?" -f 2)
     # full path with arguments for url
     url=$API_ENDPOINT$2
   else
