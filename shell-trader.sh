@@ -1,7 +1,9 @@
 #/usr/bin/env sh
 
 # source env variable for api credentials
+
 source ./.env
+# source $(pwd)/.env
 
 # sanity check if all dependencies are met
 if ! type "curl" 2> /dev/null > /dev/null; then
@@ -13,10 +15,13 @@ fi
 
 send_request() {
   method=$1
-  if [ "$method" == "GET" ]; then
+  if [ "$method" == "GET" ] || [ "$method" == "DELETE" ]; then
     # path should not contain any params for signing
     path=$(echo $2 | cut -d "?" -f 1)
-    params_or_json=$(echo $2 | grep "?" && cut -d "?" -f 2)
+    # TODO handle urls without arguments
+    # why is this still echoing to stdout?
+    echo $2 | grep "?" && params_or_json=$(echo $2 | cut -d "?" -f 2)
+    # full path with arguments for url
     url=$API_ENDPOINT$2
   else
     # if its not a GET use the JSON
@@ -26,25 +31,24 @@ send_request() {
   fi
 
   # DEBUGGING :)
-  # echo "path: $path"
   # echo "params_or_json: $params_or_json"
+  # echo "path: $path"
   # echo "url: $url"
 
   ts=$(date +"%s")000
   signed_message=$(echo -n "$ts$method$path$params_or_json" | openssl dgst -sha256 -hmac $API_SECRET -binary | base64 )
-
-  curlcmd="curl $url --header 'LNM-ACCESS-KEY: $API_KEY' --header 'LNM-ACCESS-PASSPHRASE: $API_PASSPHRASE' \
-    --header 'LNM-ACCESS-SIGNATURE: $signed_message' --header 'LNM-ACCESS-TIMESTAMP: $ts' \
-    --header 'Content-Type: application/json' --request $method"
-
-  if [ "$method" == "GET" ]; then
-    $curlcmd 2>/dev/null | jq
+  if [ "$method" == "GET" ] || [ "$method" == "DELETE" ]; then
+    curl $url -H "LNM-ACCESS-KEY: $API_KEY" -H "LNM-ACCESS-PASSPHRASE: $API_PASSPHRASE" \
+      -H "LNM-ACCESS-SIGNATURE: $signed_message" -H "LNM-ACCESS-TIMESTAMP: $ts" \
+      -H "Content-Type: application/json" --request "$method" 2>/dev/null | jq
   else
-    $curlcmd --data "$params_or_json" 2>/dev/null | jq
+    curl $url -H "LNM-ACCESS-KEY: $API_KEY" -H "LNM-ACCESS-PASSPHRASE: $API_PASSPHRASE" \
+      -H "LNM-ACCESS-SIGNATURE: $signed_message" -H "LNM-ACCESS-TIMESTAMP: $ts" \
+      -H "Content-Type: application/json" --request "$method" --data "$params_or_json" 2>/dev/null | jq
   fi
 }
 
-trade_history() {
+positions() {
   if [ -z $1 ]; then
     value="running"
   else
@@ -53,14 +57,32 @@ trade_history() {
   send_request "GET" "/v1/futures?type=$value"
 }
 
-# update_order() {
-# # Allows user to modify stoploss or takeprofit parameters of an existing position.
-# # {
-# #     "pid": "b87eef8a-52ab-2fea-1adc-c41fba870b0f",
-# #     "type": "takeprofit",
-# #     "value": 13290.5
-# # }
-# }
+close() {
+  [[ -z $1 ]] && echo "required argument pid missing" && exit
+  send_request "DELETE" "/v1/futures?pid=$1"
+}
+close_all() {
+  send_request "DELETE" "/v1/futures/all/close"
+}
+cancel() {
+  [[ -z $1 ]] && echo "required argument pid missing" && exit
+  send_request "POST" "/v1/futures/cancel" '{"pid":"'$1'"}'
+}
+cancel_all() {
+  send_request "DELETE" "/v1/futures/all/cancel"
+}
+
+add_margin() {
+  [[ -z $1 ]] && echo "required argument pid missing" && exit
+  [[ -z $2 ]] && echo "required argument amount missing" && exit
+  send_request "POST" "/v1/futures/add-margin" '{"pid":"'$1'","amount":'$2'}'
+}
+take_profit() {
+  [[ -z $1 ]] && echo "required argument pid missing" && exit
+  [[ -z $2 ]] && echo "required argument amount missing" && exit
+  send_request "POST" "/v1/futures/cash-in" '{"pid":"'$1'","amount":'$2'}'
+}
+
 
 
 create_order() {
@@ -85,35 +107,45 @@ create_order() {
   [[ -z $price ]] || price='"price":'$price','
   [[ -z $stoploss ]] || stoploss='"stoploss":'$stoploss','
   [[ -z $takeprofit ]] || takeprofit='"takeprofit":'$takeprofit','
-  echo '{'$stoploss$takeprofit$price'"type":"'$order_type'","side":"'$side'","quantity":'$qty',"leverage":'$leverage'}'
-  # send_request "POST" "/v1/futures" '{'$stoploss$takeprofit$price'"type":"'$order_type'","side":"'$side'","quantity":'$qty',"leverage":'$leverage'}'
+  send_request "POST" "/v1/futures" '{'$stoploss$takeprofit$price'"type":"'$order_type'","side":"'$side'","quantity":'$qty',"leverage":'$leverage'}'
 }
+
 limit() {
   create_order "l" $@
 }
+
 market() {
   create_order "m" $@
 }
+
 buy_limit() {
   limit "b" $@
 }
+
 buy_market() {
   market "b" $@
 }
+
 sell_limit() {
   limit "s" $@
 }
+
 sell_market() {
   market "s" $@
 }
+
 ticker() {
   send_request "GET" "/v1/futures/ticker"
 }
-close_all() {
-  send_request "DELETE" "/v1/futures/all/close"
+index_history() {
+  send_request "GET" "/v1/futures/history/index?limit=1"
 }
-cancel_all() {
-  send_request "DELETE" "/v1/futures/all/cancel"
+user() {
+  send_request "GET" "/v1/user"
 }
+balance() {
+  send_request "GET" "/v1/user" | grep balance | cut -d " " -f 4 | cut -d "," -f 1
+}
+
 
 "$@"
