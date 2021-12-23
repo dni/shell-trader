@@ -1,6 +1,2 @@
-node_modules
-package-lock.json
-.env
+.env.lnm
 .env.test
-data.txt
-signal-log.txt

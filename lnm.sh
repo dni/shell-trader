@@ -1,9 +1,7 @@
 #/usr/bin/env sh
 
 # source env variable for api credentials
-
-source ./.env
-# source $(pwd)/.env
+source $(pwd)/.env.lnm
 
 # sanity check if all dependencies are met
 if ! type "curl" 2> /dev/null > /dev/null; then
