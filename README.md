@@ -1,6 +1,6 @@
 # shell-trader CLI
 #### for lnmarkets and maybe more exchanges
-shellscript for interacting with lnmarkets.com
+shellscript for interacting with [lnmarkets](https://lnmarkets.com)
 
 ## todo
 maybe do a ftx, if some1 is interested
