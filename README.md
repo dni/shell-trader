@@ -9,20 +9,21 @@ maybe do a ftx, if some1 is interested
 ## setup
 clone the repository
 ```sh
- git clone https://github.com/dni/shell-trader
+ REPO_DIR=~/repos/shell-trader
+ git clone https://github.com/dni/shell-trader $REPO_DIR
 ```
 ### setup lnmarkets CLI
 make the script executable
 ```sh
-  sudo chmod +x ~/repos/trading/shell-trader/lnm.sh
+  sudo chmod +x $REPO_DIR/lnm.sh
 ```
 symlink the script to /usr/bin
 ```sh
-  sudo ln -s ~/repos/trading/shell-trader/lnm.sh /usr/bin/lnm
+  sudo ln -s $REPO_DIR/lnm.sh /usr/bin/lnm
 ```
 setting up the enviroment variable
 ```sh
-  cd ~/repos/trading/shell-trader
+  cd $REPO_DIR
   mv .env.lnm.example .env.lnm
   $EDITOR .env.lnm
 ```

@@ -1,7 +1,9 @@
 #/usr/bin/env sh
 
+dirname=$(dirname $(realpath "/usr/bin/lnm") )
+
 # source env variable for api credentials
-source $(pwd)/.env.lnm
+source $dirname/.env.lnm
 
 # sanity check if all dependencies are met
 if ! type "curl" 2> /dev/null > /dev/null; then
