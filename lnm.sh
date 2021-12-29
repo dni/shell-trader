@@ -145,5 +145,16 @@ balance() {
   send_request "GET" "/v1/user" | grep balance | cut -d " " -f 4 | cut -d "," -f 1
 }
 
+deposit_history() {
+  send_request "GET" "/v1/user/deposit"
+}
+
+deposit() {
+  amount=$1
+  [[ -z $amount ]] && echo "required amount type missing" && exit
+  # always forgetting about the spaces
+  send_request "POST" "/v1/user/deposit" '{"amount":'$amount',"unit":"sat"}'
+}
+
 
 "$@"
